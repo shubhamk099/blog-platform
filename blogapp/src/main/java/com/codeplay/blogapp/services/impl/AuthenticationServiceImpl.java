@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.codeplay.blogapp.services.AuthenticationService;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +60,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    @Override
+    public UserDetails validateToken(String token) {
+        String username = extractUsername(token);
+        return userDetailsService.loadUserByUsername(username);
+    }
+
+    String extractUsername(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith((SecretKey) getSigningKey())
+                .build().parseSignedClaims(token)
+                .getPayload();
+
+        return claims.getSubject();
+    }
 }
 
 // the recommended way is to let JJWT generate a strong key for you, or pass a

@@ -11,6 +11,9 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.codeplay.blogapp.security.JwtAuthenticationFilter;
+import com.codeplay.blogapp.services.AuthenticationService;
+
 @Configuration
 public class ProjectSecurity {
 
@@ -18,6 +21,7 @@ public class ProjectSecurity {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/posts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/tags/**").permitAll()
@@ -39,5 +43,10 @@ public class ProjectSecurity {
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter(AuthenticationService authenticationService) {
+        return new JwtAuthenticationFilter(authenticationService);
     }
 }
