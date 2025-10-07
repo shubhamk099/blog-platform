@@ -1,6 +1,5 @@
 package com.codeplay.blogapp.services.impl;
 
-import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +54,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return token;
     }
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         byte[] keyBytes = secretKey.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -68,13 +67,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     String extractUsername(String token) {
         Claims claims = Jwts.parser()
-                .verifyWith((SecretKey) getSigningKey())
+                .verifyWith(getSigningKey())
                 .build().parseSignedClaims(token)
                 .getPayload();
 
         return claims.getSubject();
     }
 }
-
-// the recommended way is to let JJWT generate a strong key for you, or pass a
-// proper Key directly.

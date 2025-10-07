@@ -13,11 +13,6 @@ import com.codeplay.blogapp.domain.entities.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * This bridges the gap between our domain entity(User) and UserDetails of
- * spring security
- */
-
 @Getter
 @RequiredArgsConstructor
 public class BlogUserDetails implements UserDetails {
