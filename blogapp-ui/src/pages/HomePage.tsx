@@ -1,16 +1,12 @@
-import { useEffect, useState } from 'react';
-import { 
-  Card, 
-  CardHeader, 
-  CardBody,
-  Tabs, 
-  Tab,
-} from '@nextui-org/react';
-import { apiService, Post, Category, Tag } from '../services/apiService';
-import PostList from '../components/PostList';
-import SortByDropdown from '../components/SortByDropdown';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardBody, Tabs, Tab } from "@nextui-org/react";
+import { apiService, Post, Category, Tag } from "../services/apiService";
+import PostList from "../components/PostList";
+import SortByDropdown from "../components/SortByDropdown";
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -19,24 +15,48 @@ const HomePage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState("createdAt,desc");
-  const [selectedCategory, setSelectedCategory] = useState<string|undefined>(undefined);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
+    undefined
+  );
   const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
+
+  // Check authentication on mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const { posts, totalPages } = await apiService.getPosts({
+        console.log("Fetching posts with params:", {
           page,
+          sortBy,
+          selectedCategory,
+          selectedTag,
+        });
+
+        const { posts, totalPages } = await apiService.getPosts({
+          page: page,
+          size: 10,
           sort: sortBy,
           categoryId: selectedCategory,
           tagId: selectedTag,
         });
+
+        console.log("Posts received:", posts);
+        console.log("Total pages:", totalPages);
+
         setPosts(posts);
         setTotalPages(totalPages);
         setError(null);
-      } catch {
-        setError('Failed to load posts. Please try again later.');
+      } catch (err) {
+        console.error("Error fetching posts:", err);
+        setError("Failed to load posts. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -48,24 +68,28 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const fetchCategoriesAndTags = async () => {
       try {
+        console.log("Fetching categories and tags...");
         const [categoriesResponse, tagsResponse] = await Promise.all([
           apiService.getCategories(),
           apiService.getTags(),
         ]);
+        console.log("Categories:", categoriesResponse);
+        console.log("Tags:", tagsResponse);
         setCategories(categoriesResponse);
         setTags(tagsResponse);
-      } catch {
-        setError('Failed to load categories or tags.');
+      } catch (err) {
+        console.error("Error fetching categories/tags:", err);
+        setError("Failed to load categories or tags.");
       }
     };
 
     fetchCategoriesAndTags();
   }, []);
 
-  const handleCategoryChange = (categoryId: string|undefined) => {
+  const handleCategoryChange = (categoryId: string | undefined) => {
     setPage(1);
-    if("all" === categoryId){
-      setSelectedCategory(undefined)
+    if ("all" === categoryId) {
+      setSelectedCategory(undefined);
     } else {
       setSelectedCategory(categoryId);
     }
@@ -74,26 +98,26 @@ const HomePage: React.FC = () => {
   const handleTagChange = (tagId: string | undefined) => {
     setPage(1);
     setSelectedTag(selectedTag === tagId ? undefined : tagId);
-  }
+  };
 
   const handleSortChange = (sort: string) => {
     setPage(1);
     setSortBy(sort);
-  }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 space-y-6">
       <Card className="mb-6 px-2">
-        <CardHeader className='flex justify-between'>
+        <CardHeader className="flex justify-between">
           <h1 className="text-2xl font-bold">Blog Posts</h1>
           <SortByDropdown sortBy={sortBy} onSortChange={handleSortChange} />
         </CardHeader>
         <CardBody>
-          <div className="flex flex-col gap-4">                     
-            <Tabs 
-              selectedKey={selectedCategory || 'all'} 
+          <div className="flex flex-col gap-4">
+            <Tabs
+              selectedKey={selectedCategory || "all"}
               onSelectionChange={(key) => {
-                handleCategoryChange(key as string)
+                handleCategoryChange(key as string);
               }}
               variant="underlined"
               classNames={{
@@ -103,8 +127,8 @@ const HomePage: React.FC = () => {
             >
               <Tab key="all" title="All Posts" />
               {categories.map((category) => (
-                <Tab 
-                  key={category.id} 
+                <Tab
+                  key={category.id}
                   title={`${category.name} (${category.postCount})`}
                 />
               ))}
@@ -118,8 +142,8 @@ const HomePage: React.FC = () => {
                     onClick={() => handleTagChange(tag.id)}
                     className={`px-3 py-1 rounded-full text-sm ${
                       selectedTag === tag.id
-                        ? 'bg-primary text-white'
-                        : 'bg-default-100 hover:bg-default-200'
+                        ? "bg-primary text-white"
+                        : "bg-default-100 hover:bg-default-200"
                     }`}
                   >
                     {tag.name} ({tag.postCount})

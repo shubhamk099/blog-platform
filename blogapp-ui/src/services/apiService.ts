@@ -1,4 +1,9 @@
-import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig, AxiosError } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+  AxiosError,
+} from "axios";
 
 // Types
 export interface LoginRequest {
@@ -56,7 +61,6 @@ export interface UpdatePostRequest extends CreatePostRequest {
   id: string;
 }
 
-
 export interface ApiError {
   status: number;
   message: string;
@@ -67,8 +71,8 @@ export interface ApiError {
 }
 
 export enum PostStatus {
-  DRAFT = 'DRAFT',
-  PUBLISHED = 'PUBLISHED'
+  DRAFT = "DRAFT",
+  PUBLISHED = "PUBLISHED",
 }
 
 class ApiService {
@@ -77,16 +81,16 @@ class ApiService {
 
   private constructor() {
     this.api = axios.create({
-      baseURL: '/api/v1',
+      baseURL: "/api/v1",
       headers: {
-        'Content-Type': 'application/json'
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     // Add request interceptor for authentication
     this.api.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -102,8 +106,8 @@ class ApiService {
       (response: AxiosResponse) => response,
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+          localStorage.removeItem("token");
+          window.location.href = "/login";
         }
         return Promise.reject(this.handleError(error));
       }
@@ -123,31 +127,64 @@ class ApiService {
     }
     return {
       status: 500,
-      message: 'An unexpected error occurred'
+      message: "An unexpected error occurred",
     };
   }
 
   // Auth endpoints
   public async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/login', credentials);
-    localStorage.setItem('token', response.data.token);
+    const response: AxiosResponse<AuthResponse> = await this.api.post(
+      "/auth/login",
+      credentials
+    );
+    localStorage.setItem("token", response.data.token);
     return response.data;
   }
 
   public logout(): void {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
   }
 
   // Posts endpoints
   public async getPosts(params: {
-    page?: number,
-    size?: number,
-    sort?: string,
+    page?: number;
+    size?: number;
+    sort?: string;
     categoryId?: string;
     tagId?: string;
   }): Promise<PostResponse> {
-    const response: AxiosResponse<PostResponse> = await this.api.get('/posts', { params });
-    return response.data;
+    const queryParams = {
+      ...params,
+      status: PostStatus.PUBLISHED,
+    };
+    
+    const response: AxiosResponse = await this.api.get("/posts", {
+      params: queryParams,
+    });
+    
+    // Handle different response structures
+    let posts: Post[];
+    let totalPages: number;
+    
+    if (response.data.posts) {
+      // Structure: { posts: [...], totalPages: X }
+      posts = response.data.posts;
+      totalPages = response.data.totalPages || 1;
+    } else if (response.data.content) {
+      // Spring Boot Page structure: { content: [...], totalPages: X }
+      posts = response.data.content;
+      totalPages = response.data.totalPages || 1;
+    } else if (Array.isArray(response.data)) {
+      // Plain array: [...] (YOUR BACKEND FORMAT)
+      posts = response.data;
+      totalPages = 1;
+    } else {
+      console.error("Unexpected response structure:", response.data);
+      posts = [];
+      totalPages = 0;
+    }
+    
+    return { posts, totalPages };
   }
 
   public async getPost(id: string): Promise<Post> {
@@ -156,12 +193,15 @@ class ApiService {
   }
 
   public async createPost(post: CreatePostRequest): Promise<Post> {
-    const response: AxiosResponse<Post> = await this.api.post('/posts', post);
+    const response: AxiosResponse<Post> = await this.api.post("/posts", post);
     return response.data;
   }
 
   public async updatePost(id: string, post: UpdatePostRequest): Promise<Post> {
-    const response: AxiosResponse<Post> = await this.api.put(`/posts/${id}`, post);
+    const response: AxiosResponse<Post> = await this.api.put(
+      `/posts/${id}`,
+      post
+    );
     return response.data;
   }
 
@@ -174,23 +214,60 @@ class ApiService {
     size?: number;
     sort?: string;
   }): Promise<PostResponse> {
-    const response: AxiosResponse<PostResponse> = await this.api.get('/posts/drafts', { params });
-    return response.data;
+    const queryParams = {
+      ...params,
+      status: PostStatus.DRAFT,
+    };
+    
+    const response: AxiosResponse = await this.api.get("/posts", {
+      params: queryParams,
+    });
+    
+    // Handle different response structures
+    let posts: Post[];
+    let totalPages: number;
+    
+    if (response.data.posts) {
+      posts = response.data.posts;
+      totalPages = response.data.totalPages || 1;
+    } else if (response.data.content) {
+      // Spring Boot Page structure
+      posts = response.data.content;
+      totalPages = response.data.totalPages || 1;
+    } else if (Array.isArray(response.data)) {
+      // Plain array: [...] (YOUR BACKEND FORMAT)
+      posts = response.data;
+      totalPages = 1;
+    } else {
+      console.error("Unexpected response structure:", response.data);
+      posts = [];
+      totalPages = 0;
+    }
+    
+    return { posts, totalPages };
   }
 
   // Categories endpoints
   public async getCategories(): Promise<Category[]> {
-    const response: AxiosResponse<Category[]> = await this.api.get('/categories');
+    const response: AxiosResponse<Category[]> = await this.api.get(
+      "/categories"
+    );
     return response.data;
   }
 
   public async createCategory(name: string): Promise<Category> {
-    const response: AxiosResponse<Category> = await this.api.post('/categories', { name });
+    const response: AxiosResponse<Category> = await this.api.post(
+      "/categories",
+      { name }
+    );
     return response.data;
   }
 
   public async updateCategory(id: string, name: string): Promise<Category> {
-    const response: AxiosResponse<Category> = await this.api.put(`/categories/${id}`, { id, name });
+    const response: AxiosResponse<Category> = await this.api.put(
+      `/categories/${id}`,
+      { id, name }
+    );
     return response.data;
   }
 
@@ -200,12 +277,14 @@ class ApiService {
 
   // Tags endpoints
   public async getTags(): Promise<Tag[]> {
-    const response: AxiosResponse<Tag[]> = await this.api.get('/tags');
+    const response: AxiosResponse<Tag[]> = await this.api.get("/tags");
     return response.data;
   }
 
   public async createTags(names: string[]): Promise<Tag[]> {
-    const response: AxiosResponse<Tag[]> = await this.api.post('/tags', { names });
+    const response: AxiosResponse<Tag[]> = await this.api.post("/tags", {
+      names,
+    });
     return response.data;
   }
 

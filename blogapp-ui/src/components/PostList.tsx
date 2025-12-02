@@ -1,10 +1,16 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardBody, CardFooter, CardHeader, Chip } from '@nextui-org/react';
-import { Post } from '../services/apiService';
-import { Calendar, Clock, Tag } from 'lucide-react';
-import DOMPurify from 'dompurify';
-import Pagination from './Pagination';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Chip,
+} from "@nextui-org/react";
+import { Post } from "../services/apiService";
+import { Calendar, Clock, Tag } from "lucide-react";
+import DOMPurify from "dompurify";
+import Pagination from "./Pagination";
 
 interface PostListProps {
   posts: Post[] | null;
@@ -23,107 +29,115 @@ const PostList: React.FC<PostListProps> = ({
   totalPages,
   onPageChange,
 }) => {
- 
   const navigate = useNavigate();
- 
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const createExcerpt = (content: string) => {
     // First sanitize the HTML
     const sanitizedContent = DOMPurify.sanitize(content, {
-      ALLOWED_TAGS: ['p', 'strong', 'em', 'br'],
-      ALLOWED_ATTR: []
+      ALLOWED_TAGS: ["p", "strong", "em", "br"],
+      ALLOWED_ATTR: [],
     });
-    
+
     // Create a temporary div to parse the HTML
-    const tempDiv = document.createElement('div');
+    const tempDiv = document.createElement("div");
     tempDiv.innerHTML = sanitizedContent;
-    
+
     // Get the text content and limit it
-    let textContent = tempDiv.textContent || tempDiv.innerText || '';
+    let textContent = tempDiv.textContent || tempDiv.innerText || "";
     textContent = textContent.trim();
-    
+
     // Limit to roughly 200 characters, ending at the last complete word
     if (textContent.length > 200) {
-      textContent = textContent.substring(0, 200).split(' ').slice(0, -1).join(' ') + '...';
+      textContent =
+        textContent.substring(0, 200).split(" ").slice(0, -1).join(" ") + "...";
     }
-    
+
     return textContent;
   };
 
   if (error) {
-    return (
-      <div className="p-4 text-red-500 bg-red-50 rounded-lg">
-        {error}
-      </div>
-    );
+    return <div className="p-4 text-red-500 bg-red-50 rounded-lg">{error}</div>;
   }
 
   const navToPostPage = (post: Post) => {
-    navigate(`/posts/${post.id}`)
-  }
+    navigate(`/posts/${post.id}`);
+  };
 
   return (
     <div className="w-full space-y-6">
-
-
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, index) => (
             <Card key={index} className="w-full animate-pulse">
-              <CardBody>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <CardBody className="space-y-3">
+                <div className="h-6 bg-default-200 rounded w-3/4"></div>
+                <div className="h-4 bg-default-200 rounded w-1/2"></div>
+                <div className="h-4 bg-default-200 rounded w-full"></div>
+                <div className="h-4 bg-default-200 rounded w-5/6"></div>
               </CardBody>
             </Card>
           ))}
         </div>
-      ) : (
+      ) : posts && posts.length > 0 ? (
         <>
           <div className="space-y-4">
-            {posts?.map((post) => (
-              <Card key={post.id} className="w-full p-2" isPressable={true} onPress={() => navToPostPage(post)}>
-                <CardHeader className="flex gap-3">                 
-                    <div className='flex flex-col'>
-                    <h2 className="text-xl font-bold text-left">
-                      {post.title}
-                    </h2>
-                    <p className="text-small text-default-500">
-                      by {post.author?.name}
-                    </p>                
-                    </div>
+            {posts.map((post) => (
+              <Card
+                key={post.id}
+                className="w-full hover:shadow-lg transition-shadow"
+                isPressable
+                onPress={() => navToPostPage(post)}
+              >
+                <CardHeader className="flex-col items-start gap-2 pb-2">
+                  <h2 className="text-xl font-bold text-left w-full">
+                    {post.title}
+                  </h2>
+                  <p className="text-sm text-default-500">
+                    by {post.author?.name || "Anonymous"}
+                  </p>
                 </CardHeader>
-                <CardBody>
-                  <p className="line-clamp-3">
+
+                <CardBody className="py-3">
+                  <p className="text-default-700 line-clamp-3">
                     {createExcerpt(post.content)}
                   </p>
                 </CardBody>
-                <CardFooter className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-1 text-small text-default-500">
-                    <Calendar size={16} />
-                    {formatDate(post.createdAt)}
+
+                <CardFooter className="flex-col items-start gap-3 pt-3">
+                  <div className="flex flex-wrap items-center gap-4 w-full">
+                    <div className="flex items-center gap-1.5 text-sm text-default-500">
+                      <Calendar size={16} />
+                      <span>{formatDate(post.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm text-default-500">
+                      <Clock size={16} />
+                      <span>{post.readingTime} min read</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 text-small text-default-500">
-                    <Clock size={16} />
-                    {post.readingTime} min read
-                  </div>
-                  <div className="flex flex-wrap gap-2">
+
+                  <div className="flex flex-wrap gap-2 w-full">
                     <Chip
-                      className="bg-primary-100 text-primary"
+                      size="sm"
+                      className="bg-primary text-primary-foreground"
+                      variant="flat"
                     >
                       {post.category.name}
                     </Chip>
                     {post.tags.map((tag) => (
                       <Chip
                         key={tag.id}
-                        className="bg-default-100"
-                        startContent={<Tag size={14} />}
+                        size="sm"
+                        className="bg-default-100 text-default-700"
+                        variant="flat"
+                        startContent={<Tag size={12} />}
                       >
                         {tag.name}
                       </Chip>
@@ -135,13 +149,21 @@ const PostList: React.FC<PostListProps> = ({
           </div>
 
           {totalPages > 1 && (
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-            />
+            <div className="flex justify-center mt-8">
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+              />
+            </div>
           )}
         </>
+      ) : (
+        <Card className="w-full">
+          <CardBody className="text-center py-12">
+            <p className="text-default-500 text-lg">No posts found.</p>
+          </CardBody>
+        </Card>
       )}
     </div>
   );

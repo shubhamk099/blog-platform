@@ -54,7 +54,7 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarContent className="sm:hidden pr-3" justify="center">
         <NavbarBrand>
           <Link to="/" className="font-bold text-inherit">
-            BlogSphere
+            Blog Sphere
           </Link>
         </NavbarBrand>
       </NavbarContent>
@@ -62,7 +62,7 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarContent className="hidden sm:flex gap-4" justify="start">
         <NavbarBrand>
           <Link to="/" className="font-bold text-inherit">
-            BlogSphere
+            Blog Sphere
           </Link>
         </NavbarBrand>
         {menuItems.map((item) => (
