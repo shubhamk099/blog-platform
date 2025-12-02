@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Card, 
   CardHeader,
@@ -9,28 +9,32 @@ import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiService, Post } from '../services/apiService';
 import PostList from '../components/PostList';
+import SortByDropdown from '../components/SortByDropdown';
 
 const DraftsPage: React.FC = () => {
   const [drafts, setDrafts] = useState<Post[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState("updatedAt,desc");
 
   useEffect(() => {
     const fetchDrafts = async () => {
       try {
         setLoading(true);
-        const response = await apiService.getDrafts({
+        const { posts, totalPages } = await apiService.getDrafts({
           page: page - 1,
           size: 10,
           sort: sortBy,
         });
-        setDrafts(response);
+        setDrafts(posts);
+        setTotalPages(totalPages);
         setError(null);
-      } catch (err) {
+      } catch {
         setError('Failed to load drafts. Please try again later.');
-      } finally {
+      }
+       finally {
         setLoading(false);
       }
     };
@@ -38,19 +42,27 @@ const DraftsPage: React.FC = () => {
     fetchDrafts();
   }, [page, sortBy]);
 
+  const handleSortChange = (sort: string) => {
+    setPage(1);
+    setSortBy(sort);
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4">
       <Card>
         <CardHeader className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">My Drafts</h1>
-          <Button
-            as={Link}
-            to="/posts/new"
-            color="primary"
-            startContent={<Plus size={16} />}
-          >
-            New Post
-          </Button>
+          <div className='flex gap-2'>
+            <SortByDropdown sortBy={sortBy} onSortChange={handleSortChange} />
+            <Button
+              as={Link}
+              to="/posts/new"
+              color="primary"
+              startContent={<Plus size={16} />}
+            >
+              New Post
+            </Button>
+          </div>
         </CardHeader>
 
         <CardBody>
@@ -65,9 +77,8 @@ const DraftsPage: React.FC = () => {
             loading={loading}
             error={error}
             page={page}
-            sortBy={sortBy}
+            totalPages={totalPages}
             onPageChange={setPage}
-            onSortChange={setSortBy}
           />
 
           {drafts?.length === 0 && !loading && (

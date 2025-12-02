@@ -46,7 +46,7 @@ const TagsPage: React.FC<TagsPageProps> = ({ isAuthenticated }) => {
       const response = await apiService.getTags();
       setTags(response);
       setError(null);
-    } catch (err) {
+    } catch {
       setError("Failed to load tags. Please try again later.");
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ const TagsPage: React.FC<TagsPageProps> = ({ isAuthenticated }) => {
       await apiService.createTags(newTags);
       await fetchTags();
       handleModalClose();
-    } catch (err) {
+    } catch {
       setError("Failed to create tags. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -81,7 +81,7 @@ const TagsPage: React.FC<TagsPageProps> = ({ isAuthenticated }) => {
       setLoading(true);
       await apiService.deleteTag(tag.id);
       await fetchTags();
-    } catch (err) {
+    } catch {
       setError("Failed to delete tag. Please try again.");
     } finally {
       setLoading(false);

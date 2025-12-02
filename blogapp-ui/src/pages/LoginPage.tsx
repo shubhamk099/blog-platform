@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiService } from '../services/apiService';
-import { useAuth } from '../components/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -17,11 +16,14 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await apiService.login({ email, password });
-      login(response);
+      await login(email, password);
       navigate('/');
-    } catch (err: any) {
-      setError(err.message || 'Failed to login. Please try again.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to login. Please try again.');
+      } else {
+        setError('An unknown error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

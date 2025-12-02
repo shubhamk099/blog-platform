@@ -39,6 +39,11 @@ export interface Post {
   status?: PostStatus;
 }
 
+export interface PostResponse {
+  posts: Post[];
+  totalPages: number;
+}
+
 export interface CreatePostRequest {
   title: string;
   content: string;
@@ -135,10 +140,13 @@ class ApiService {
 
   // Posts endpoints
   public async getPosts(params: {
+    page?: number,
+    size?: number,
+    sort?: string,
     categoryId?: string;
     tagId?: string;
-  }): Promise<Post[]> {
-    const response: AxiosResponse<Post[]> = await this.api.get('/posts', { params });
+  }): Promise<PostResponse> {
+    const response: AxiosResponse<PostResponse> = await this.api.get('/posts', { params });
     return response.data;
   }
 
@@ -165,8 +173,8 @@ class ApiService {
     page?: number;
     size?: number;
     sort?: string;
-  }): Promise<Post[]> {
-    const response: AxiosResponse<Post[]> = await this.api.get('/posts/drafts', { params });
+  }): Promise<PostResponse> {
+    const response: AxiosResponse<PostResponse> = await this.api.get('/posts/drafts', { params });
     return response.data;
   }
 

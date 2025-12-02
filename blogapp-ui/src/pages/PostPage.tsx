@@ -24,12 +24,10 @@ import { apiService, Post } from '../services/apiService';
 
 interface PostPageProps {
   isAuthenticated?: boolean;
-  currentUserId?: string;
 }
 
 const PostPage: React.FC<PostPageProps> = ({ 
   isAuthenticated,
-  currentUserId
 }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -46,7 +44,7 @@ const PostPage: React.FC<PostPageProps> = ({
         const fetchedPost = await apiService.getPost(id);
         setPost(fetchedPost);
         setError(null);
-      } catch (err) {
+      } catch {
         setError('Failed to load the post. Please try again later.');
       } finally {
         setLoading(false);
@@ -65,7 +63,7 @@ const PostPage: React.FC<PostPageProps> = ({
       setIsDeleting(true);
       await apiService.deletePost(post.id);
       navigate('/');
-    } catch (err) {
+    } catch {
       setError('Failed to delete the post. Please try again later.');
       setIsDeleting(false);
     }
@@ -78,7 +76,7 @@ const PostPage: React.FC<PostPageProps> = ({
         text: post?.content.substring(0, 100) + '...',
         url: window.location.href,
       });
-    } catch (err) {
+    } catch {
       // Fallback to copying URL
       navigator.clipboard.writeText(window.location.href);
     }

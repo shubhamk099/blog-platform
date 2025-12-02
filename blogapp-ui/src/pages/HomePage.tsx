@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Card, 
   CardHeader, 
@@ -8,6 +8,7 @@ import {
 } from '@nextui-org/react';
 import { apiService, Post, Category, Tag } from '../services/apiService';
 import PostList from '../components/PostList';
+import SortByDropdown from '../components/SortByDropdown';
 
 const HomePage: React.FC = () => {
   const [posts, setPosts] = useState<Post[] | null>(null);
@@ -16,38 +17,53 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState("createdAt,desc");
   const [selectedCategory, setSelectedCategory] = useState<string|undefined>(undefined);
   const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPosts = async () => {
       try {
         setLoading(true);
-        const [postsResponse, categoriesResponse, tagsResponse] = await Promise.all([
-          apiService.getPosts({      
-            categoryId: selectedCategory != undefined ? selectedCategory : undefined,
-            tagId: selectedTag || undefined
-          }),
-          apiService.getCategories(),
-          apiService.getTags()
-        ]);
-
-        setPosts(postsResponse);
-        setCategories(categoriesResponse);
-        setTags(tagsResponse);
+        const { posts, totalPages } = await apiService.getPosts({
+          page,
+          sort: sortBy,
+          categoryId: selectedCategory,
+          tagId: selectedTag,
+        });
+        setPosts(posts);
+        setTotalPages(totalPages);
         setError(null);
-      } catch (err) {
-        setError('Failed to load content. Please try again later.');
+      } catch {
+        setError('Failed to load posts. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchPosts();
   }, [page, sortBy, selectedCategory, selectedTag]);
 
+  useEffect(() => {
+    const fetchCategoriesAndTags = async () => {
+      try {
+        const [categoriesResponse, tagsResponse] = await Promise.all([
+          apiService.getCategories(),
+          apiService.getTags(),
+        ]);
+        setCategories(categoriesResponse);
+        setTags(tagsResponse);
+      } catch {
+        setError('Failed to load categories or tags.');
+      }
+    };
+
+    fetchCategoriesAndTags();
+  }, []);
+
   const handleCategoryChange = (categoryId: string|undefined) => {
+    setPage(1);
     if("all" === categoryId){
       setSelectedCategory(undefined)
     } else {
@@ -55,16 +71,27 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const handleTagChange = (tagId: string | undefined) => {
+    setPage(1);
+    setSelectedTag(selectedTag === tagId ? undefined : tagId);
+  }
+
+  const handleSortChange = (sort: string) => {
+    setPage(1);
+    setSortBy(sort);
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 space-y-6">
       <Card className="mb-6 px-2">
-        <CardHeader>
+        <CardHeader className='flex justify-between'>
           <h1 className="text-2xl font-bold">Blog Posts</h1>
+          <SortByDropdown sortBy={sortBy} onSortChange={handleSortChange} />
         </CardHeader>
         <CardBody>
           <div className="flex flex-col gap-4">                     
             <Tabs 
-              selectedKey={selectedCategory} 
+              selectedKey={selectedCategory || 'all'} 
               onSelectionChange={(key) => {
                 handleCategoryChange(key as string)
               }}
@@ -88,7 +115,7 @@ const HomePage: React.FC = () => {
                 {tags.map((tag) => (
                   <button
                     key={tag.id}
-                    onClick={() => setSelectedTag(selectedTag == tag.id ? undefined : tag.id)}
+                    onClick={() => handleTagChange(tag.id)}
                     className={`px-3 py-1 rounded-full text-sm ${
                       selectedTag === tag.id
                         ? 'bg-primary text-white'
@@ -109,9 +136,8 @@ const HomePage: React.FC = () => {
         loading={loading}
         error={error}
         page={page}
-        sortBy={sortBy}
+        totalPages={totalPages}
         onPageChange={setPage}
-        onSortChange={setSortBy}
       />
     </div>
   );

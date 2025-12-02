@@ -1,18 +1,18 @@
 import React from 'react';
-import { Link, useNavigate, useNavigation } from 'react-router-dom';
-import { Card, CardBody, CardFooter, CardHeader, Chip, Pagination, Select, SelectItem } from '@nextui-org/react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardBody, CardFooter, CardHeader, Chip } from '@nextui-org/react';
 import { Post } from '../services/apiService';
 import { Calendar, Clock, Tag } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import Pagination from './Pagination';
 
 interface PostListProps {
   posts: Post[] | null;
   loading: boolean;
   error: string | null;
   page: number;
-  sortBy: string;
+  totalPages: number;
   onPageChange: (page: number) => void;
-  onSortChange: (sortBy: string) => void;
 }
 
 const PostList: React.FC<PostListProps> = ({
@@ -20,35 +20,18 @@ const PostList: React.FC<PostListProps> = ({
   loading,
   error,
   page,
-  sortBy,
+  totalPages,
   onPageChange,
-  onSortChange,
 }) => {
  
   const navigate = useNavigate();
  
-  const sortOptions = [
-    { value: "createdAt,desc", label: "Newest First" },
-    { value: "createdAt,asc", label: "Oldest First" },
-    { value: "title,asc", label: "Title A-Z" },
-    { value: "title,desc", label: "Title Z-A" },
-  ];
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  const createSanitizedHTML = (content: string) => {
-    return {
-      __html: DOMPurify.sanitize(content, {
-        ALLOWED_TAGS: ['p', 'strong', 'em', 'br'],
-        ALLOWED_ATTR: []
-      })
-    };
   };
 
   const createExcerpt = (content: string) => {
@@ -88,20 +71,7 @@ const PostList: React.FC<PostListProps> = ({
 
   return (
     <div className="w-full space-y-6">
-      {/* <div className="flex justify-end mb-4">
-        <Select
-          label="Sort by"
-          selectedKeys={[sortBy]}
-          className="max-w-xs"
-          onChange={(e) => onSortChange(e.target.value)}
-        >
-          {sortOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </Select>
-      </div> */}
+
 
       {loading ? (
         <div className="space-y-4">
@@ -164,16 +134,13 @@ const PostList: React.FC<PostListProps> = ({
             ))}
           </div>
 
-          {/* {posts && posts.totalPages > 1 && (
-            <div className="flex justify-center mt-6">
-              <Pagination
-                total={posts.totalPages}
-                page={page}
-                onChange={onPageChange}
-                showControls
-              />
-            </div>
-          )} */}
+          {totalPages > 1 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
+          )}
         </>
       )}
     </div>

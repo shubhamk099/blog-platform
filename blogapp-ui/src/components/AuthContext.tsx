@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
 import { apiService } from '../services/apiService';
 
 interface AuthUser {
@@ -7,7 +8,7 @@ interface AuthUser {
   email: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   isAuthenticated: boolean;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
@@ -19,7 +20,7 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -37,7 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // setUser(userProfile);
           setIsAuthenticated(true);
           setToken(storedToken);
-        } catch (error) {
+        } catch {
           // If token is invalid, clear authentication
           localStorage.removeItem('token');
           setIsAuthenticated(false);
@@ -51,6 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
+    // eslint-disable-next-line no-useless-catch
     try {
       const response = await apiService.login({ email, password });
       
@@ -97,13 +99,3 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-export default AuthContext;
