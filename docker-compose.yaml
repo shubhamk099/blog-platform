@@ -20,17 +20,27 @@ services:
       retries: 3
       start_period: 10s
 
-  blogsphere-api:
-    container_name: blogsphere-api
-    image: shubham/blogsphere:1.0.0
-    ports:
-      - "8080:8080"
-    networks:
-      - blogsphere-ntw
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+  # blogsphere-api:
+  #   container_name: blogsphere-api
+  #   image: shubham/blogsphere-api:1.0.0
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - blogsphere-ntw
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+  # blogsphere-ui:
+  #   container_name: blogsphere-ui
+  #   image: shubham/blogsphere-ui:1.0.0
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - blogsphere-ntw
+  #   depends_on:
+  #     - blogsphere-api
 
 networks:
   blogsphere-ntw:
