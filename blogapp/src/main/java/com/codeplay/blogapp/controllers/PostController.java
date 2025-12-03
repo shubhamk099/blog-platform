@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codeplay.blogapp.domain.CreatePostRequest;
+import com.codeplay.blogapp.domain.PostStatus;
 import com.codeplay.blogapp.domain.UpdatePostRequest;
 import com.codeplay.blogapp.domain.dtos.CreatePostRequestDto;
 import com.codeplay.blogapp.domain.dtos.PostDto;
@@ -42,9 +43,19 @@ public class PostController {
     @GetMapping
     public ResponseEntity<List<PostDto>> getAllPosts(
             @RequestParam(required = false) UUID categoryId,
-            @RequestParam(required = false) UUID tagId) {
+            @RequestParam(required = false) UUID tagId,
+            @RequestParam(required = false) String status) {
 
-        List<Post> posts = postService.getAllPosts(categoryId, tagId);
+        PostStatus postStatus = null;
+        if (status != null) {
+            try {
+                postStatus = PostStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                // Invalid status, ignore it
+            }
+        }
+
+        List<Post> posts = postService.getAllPosts(categoryId, tagId, postStatus);
         List<PostDto> postDtos = posts.stream().map(postMapper::toDto).toList();
 
         return ResponseEntity.ok(postDtos);

@@ -36,28 +36,30 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Post> getAllPosts(UUID categoryId, UUID tagId) {
+    public List<Post> getAllPosts(UUID categoryId, UUID tagId, PostStatus status) {
+
+        PostStatus filterStatus = (status != null) ? status : PostStatus.PUBLISHED;
 
         if (null != categoryId && null != tagId) {
             Category category = categoryService.getCategoryById(categoryId);
 
             Tag tag = tagService.getTagById(tagId);
 
-            return postRepository.findAllByStatusAndCategoryAndTagsContaining(PostStatus.PUBLISHED, category, tag);
+            return postRepository.findAllByStatusAndCategoryAndTagsContaining(filterStatus, category, tag);
         }
 
         if (null != categoryId) {
             Category category = categoryService.getCategoryById(categoryId);
 
-            return postRepository.findAllByStatusAndCategory(PostStatus.PUBLISHED, category);
+            return postRepository.findAllByStatusAndCategory(filterStatus, category);
         }
 
         if (null != tagId) {
             Tag tag = tagService.getTagById(tagId);
-            return postRepository.findAllByStatusAndTagsContaining(PostStatus.PUBLISHED, tag);
+            return postRepository.findAllByStatusAndTagsContaining(filterStatus, tag);
         }
 
-        return postRepository.findAllByStatus(PostStatus.PUBLISHED);
+        return postRepository.findAllByStatus(filterStatus);
     }
 
     @Override
