@@ -14,12 +14,10 @@
 <br>
 
 <p align="center">
-  <a href="#live-demo">Live Demo</a> •
   <a href="#features">Features</a> •
   <a href="#tech-stack">Tech Stack</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#getting-started">Getting Started</a> •
-  <a href="#contact">Contact</a>
 </p>
 
 ## Overview
