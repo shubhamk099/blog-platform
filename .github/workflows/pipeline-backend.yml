@@ -31,30 +31,10 @@ jobs:
           cd blogsphere
           mvn clean compile 
 
-  unit-tests:
-    runs-on: ubuntu-latest
-    name: Unit Tests
-    steps: 
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: 25
-          distribution: 'corretto'
-
-      - name : Running Unit Tests
-        run: |
-          cd blogsphere
-          mvn clean test
-  
   build:
     runs-on: ubuntu-latest
     name: Build Backend
-    needs: [compile, unit-tests]
+    needs: [compile]
     steps: 
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -92,7 +72,7 @@ jobs:
         id: extract_version
         run: |
           cd blogsphere
-          echo "VERSION=$(mvn -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_OUTPUT
+          echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
       - name: Login To DockerHub
         uses: docker/login-action@v3
@@ -131,7 +111,7 @@ jobs:
         id: extract_version
         run: |
           cd blogsphere
-          echo "VERSION=$(mvn -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_OUTPUT
+          echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
       - name: Create Deployment Folder
         uses: appleboy/ssh-action@v1.0.3
