@@ -22,7 +22,7 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-jdk@v4
         with:
-          java-version: 21
+          java-version: 25
           distribution: 'corretto'
 
       - name : Compile Project
@@ -42,7 +42,7 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-jdk@v4
         with:
-          java-version: 21
+          java-version: 25
           distribution: 'corretto'
 
       - name : Running Unit Tests
@@ -63,7 +63,7 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-jdk@v4
         with:
-          java-version: 21
+          java-version: 25
           distribution: 'corretto'
 
       - name : Build Package
@@ -84,7 +84,7 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-jdk@v4
         with:
-          java-version: 21
+          java-version: 25
           distribution: 'corretto'
 
       - name: Extract Project Version
