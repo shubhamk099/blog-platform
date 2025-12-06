@@ -22,7 +22,7 @@ services:
 
   blogsphere-api:
     container_name: blogsphere-api
-    image: shubham/blogsphere-api:1.0.0
+    image: ${DOCKER_USERNAME:-shubham}/blogsphere-api:${API_VERSION:-latest}
     ports:
       - "8080:8080"
     networks:
@@ -34,7 +34,7 @@ services:
     
   blogsphere-ui:
     container_name: blogsphere-ui
-    image: shubham/blogsphere-ui:1.0.0
+    image: ${DOCKER_USERNAME:-shubham}/blogsphere-ui:${UI_VERSION:-latest}
     ports:
       - "80:80"
     networks:

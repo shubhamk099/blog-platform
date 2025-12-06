@@ -1,0 +1,99 @@
+name: Blogshpere Frontend Pipeline
+
+on:
+  push:
+    branches:
+      - ci/pipeline
+    paths:
+      - blogsphere-ui/**
+      - "docker-compose.yml"
+      - .github/workflows/*-frontend.yml
+
+jobs:
+  build-image:
+    name: Build Frontend Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Extract Project Version
+        id: extract_version
+        run: |
+          cd blogsphere-ui
+          echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
+
+      - name: Login To DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push To DockerHub
+        uses: docker/build-push-action@v5
+        with:
+          context: ./blogsphere-ui
+          file: ./blogsphere-ui/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/blogsphere-ui:${{ steps.extract_version.outputs.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/blogsphere-ui:latest
+
+  deploy:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: [build-image]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Extract Project Version
+        id: extract_version
+        run: |
+          cd blogsphere-ui
+          echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
+
+      - name: Create Deployment Folder
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_PRIVATE_KEY }}
+          script: |
+              mkdir -p ci-cd
+              cd ci-cd
+              touch .env
+              # Update or append UI_VERSION
+              if grep -q "UI_VERSION=" .env; then
+                sed -i 's/UI_VERSION=.*/UI_VERSION=${{ steps.extract_version.outputs.VERSION }}/g' .env
+              else
+                echo "UI_VERSION=${{ steps.extract_version.outputs.VERSION }}" >> .env
+              fi
+              # Update or append DOCKER_USERNAME
+              if grep -q "DOCKER_USERNAME=" .env; then
+                sed -i 's/DOCKER_USERNAME=.*/DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}/g' .env
+              else
+                echo "DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" >> .env
+              fi
+
+      - name: Copy docker-compose File
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_PRIVATE_KEY }}
+          source: "docker-compose.yaml"
+          target: "ci-cd"
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_PRIVATE_KEY }}
+          script: |
+            cd ci-cd
+            docker compose -f docker-compose.yaml pull -q
+            docker compose -f docker-compose.yaml up -d

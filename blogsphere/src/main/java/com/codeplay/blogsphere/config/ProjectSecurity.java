@@ -76,7 +76,10 @@ public class ProjectSecurity {
                 "http://127.0.0.1",
                 "http://127.0.0.1:3000",
                 "http://127.0.0.1:5173",
-                "http://127.0.0.1:8080"));
+                "http://127.0.0.1:8080",
+                "http://13.60.183.126:8080",
+                "http://13.60.183.126:80",
+                "http://13.60.183.126"));
 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
