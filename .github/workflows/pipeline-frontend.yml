@@ -1,7 +1,6 @@
 name: Blogshpere Frontend Pipeline
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - ci/pipeline
@@ -90,11 +89,16 @@ jobs:
 
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_PRIVATE_KEY }}
+          envs: DOCKER_USERNAME,DOCKER_TOKEN
           script: |
+            echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
             cd ci-cd
             docker compose -f docker-compose.yaml pull -q
             docker compose -f docker-compose.yaml up -d
