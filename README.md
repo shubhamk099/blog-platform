@@ -86,9 +86,6 @@ Blogsphere is a feature-rich, full-stack blogging platform designed to provide a
 
 ### Docker Hub Images
 
-- **Frontend:** [https://hub.docker.com/repository/docker/shubhamk099/blogsphere-ui/general](https://hub.docker.com/repository/docker/shubhamk099/blogsphere-ui/general)
-- **Backend:** [https://hub.docker.com/repository/docker/shubhamk099/blogsphere-api/general](https://hub.docker.com/repository/docker/shubhamk099/blogsphere-api/general)
-
 ---
 
 ## Architecture
