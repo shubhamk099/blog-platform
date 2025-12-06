@@ -1,7 +1,6 @@
 name: Blogshpere Backend API Pipeline
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - ci/pipeline
