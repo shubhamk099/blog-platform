@@ -75,17 +75,6 @@ Blogsphere is a feature-rich, full-stack blogging platform designed to provide a
 | **Docker**         | For containerizing both the frontend and backend applications.  |
 | **Docker Compose** | For defining and running the multi-container application stack. |
 
-## DevOps
-
-### Containerization
-
-| Technology         | Description                                                |
-| :----------------- | :--------------------------------------------------------- |
-| **Docker**         | Containerizing both frontend and backend applications      |
-| **Docker Compose** | Defining and running the multi-container application stack |
-
-### Docker Hub Images
-
 ---
 
 ## Architecture
